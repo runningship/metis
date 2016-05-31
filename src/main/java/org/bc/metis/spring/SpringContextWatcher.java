@@ -14,7 +14,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 
-public class SpringContextUtil implements ApplicationContextAware{
+public class SpringContextWatcher implements ApplicationContextAware{
 
 	static ApplicationContext srpingContext;
 	

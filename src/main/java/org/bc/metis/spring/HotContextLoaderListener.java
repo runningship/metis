@@ -27,7 +27,7 @@ public class HotContextLoaderListener extends ContextLoaderListener{
 				springConfigDirs.add(dir);
 			}
 		}
-		SpringContextUtil.startWatch(springConfigDirs);
+		SpringContextWatcher.startWatch(springConfigDirs);
 	}
 	
 }
