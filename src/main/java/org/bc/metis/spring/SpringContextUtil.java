@@ -1,5 +1,6 @@
 package org.bc.metis.spring;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardWatchEventKinds;
@@ -11,34 +12,39 @@ import java.util.List;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 public class SpringContextUtil implements ApplicationContextAware{
 
-	ApplicationContext srpingContext;
+	static ApplicationContext srpingContext;
 	
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext)
 			throws BeansException {
 		srpingContext = applicationContext;
-		watchContextConfigs();
 	}
 	
-	private void watchContextConfigs(){
+	public static void startWatch(List<String> paths){
+		for(String path : paths){
+			innerStartWatcher(Paths.get(path));
+		}
+	}
+	
+	private static void innerStartWatcher(final Path dir){
 		Thread t = new Thread(){
 			public void run(){
 				while(true){
-					doWatch();
+					doWatch(dir);
 				}
 			}
 		};
 		t.start();
 	}
 	
-	private void doWatch(){
-		Path myDir = Paths.get("E:\\java\\git\\xzye\\metis\\src\\main\\webapp\\WEB-INF");
+	private static void doWatch(Path dir){
 		try {  
-	           WatchService watcher = myDir.getFileSystem().newWatchService();  
-	           myDir.register(watcher, StandardWatchEventKinds.ENTRY_CREATE,   StandardWatchEventKinds.ENTRY_MODIFY);  
+	           WatchService watcher = dir.getFileSystem().newWatchService();  
+	           dir.register(watcher, StandardWatchEventKinds.ENTRY_CREATE,   StandardWatchEventKinds.ENTRY_MODIFY);  
 	           WatchKey watckKey = watcher.take();  
 	           List<WatchEvent<?>> events = watckKey.pollEvents();  
 	           for (WatchEvent event : events) {  
@@ -46,12 +52,23 @@ public class SpringContextUtil implements ApplicationContextAware{
 	                    System.out.println("Created: " + event.context().toString());  
 	                }  
 	                if (event.kind() == StandardWatchEventKinds.ENTRY_MODIFY) {  
-	                    System.out.println("Modify: " + event.context().toString());  
+	                    System.out.println("Modify: " + event.context().toString());
+	                    refreshConfigToContext(dir+ File.separator+ event.context().toString());
 	                }  
 	            }  
 	             
 	        } catch (Exception e) {  
 	            System.out.println("Error: " + e.toString());  
 	        }
+	}
+	
+	private static void refreshConfigToContext(String file){
+		try{
+			FileSystemXmlApplicationContext context = new FileSystemXmlApplicationContext(file);
+			context.getBeanDefinitionNames();
+		}catch(Exception ex){
+			System.out.println("refresh "+file+ " failed");
+		}
+		
 	}
 }
